@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>EV vs Fuel • Mileage & Pollution Comparison</title>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #f4f7fc;
+            padding: 24px 16px;
+            color: #1a2b3c;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-weight: 600;
+            font-size: 2.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        h1 span {
+            background: #0b3b5c;
+            color: white;
+            font-size: 1rem;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 500;
+        }
+        .subhead {
+            color: #2c4c6e;
+            margin-bottom: 30px;
+            border-left: 5px solid #2a9d8f;
+            padding-left: 18px;
+            font-weight: 400;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px 28px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03), 0 2px 6px rgba(0,20,40,0.05);
+            margin-bottom: 30px;
+            border: 1px solid #e6edf4;
+        }
+        .input-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 20px 30px;
+            margin-bottom: 25px;
+        }
+        .ev-count-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #2c4c6e;
+            letter-spacing: 0.3px;
+        }
+        input {
+            padding: 12px 16px;
+            border: 1.5px solid #d0dde9;
+            border-radius: 18px;
+            font-size: 1rem;
+            width: 140px;
+            transition: 0.2s;
+            background: white;
+            font-weight: 500;
+        }
+        input:focus {
+            border-color: #2a9d8f;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42,157,143,0.2);
+        }
+        button {
+            background: #1e4a6b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            border: 1px solid #1a3f5a;
+            transition: 0.15s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            letter-spacing: 0.3px;
+        }
+        button:hover {
+            background: #0f3550;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 14px rgba(0,0,0,0.08);
+        }
+        button.secondary {
+            background: white;
+            color: #1e4a6b;
+            border: 1.5px solid #bdd3e6;
+            box-shadow: none;
+        }
+        button.secondary:hover {
+            background: #eaf1f9;
+        }
+        .ev-entries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 20px;
+            margin: 20px 0 10px;
+            background: #f9fcff;
+            padding: 18px 20px;
+            border-radius: 24px;
+        }
+        .ev-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: white;
+            padding: 10px 16px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            border: 1px solid #e2ebf3;
+            min-width: 160px;
+        }
+        .ev-item label {
+            font-size: 0.85rem;
+            color: #1e4a6b;
+        }
+        .ev-item input {
+            width: 100%;
+            padding: 10px 12px;
+        }
+        .action-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin: 30px 0 20px;
+        }
+        .stat-card {
+            background: #f0f6fe;
+            padding: 18px 16px;
+            border-radius: 20px;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #33658a;
+            font-weight: 600;
+        }
+        .stat-value {
+            font-size: 2.1rem;
+            font-weight: 700;
+            color: #0b2b40;
+            line-height: 1.2;
+        }
+        .stat-unit {
+            font-size: 0.9rem;
+            color: #4a6f8a;
+            font-weight: 400;
+            margin-left: 6px;
+        }
+        .chart-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-top: 20px;
+        }
+        .chart-box {
+            flex: 1 1 300px;
+            background: #fbfdff;
+            padding: 20px 18px;
+            border-radius: 24px;
+            border: 1px solid #dee9f2;
+        }
+        .chart-box h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-weight: 600;
+            color: #1e3b54;
+        }
+        canvas {
+            max-height: 260px;
+            max-width: 100%;
+        }
+        .analysis-text {
+            background: #eef3f9;
+            border-radius: 18px;
+            padding: 18px 22px;
+            margin: 20px 0 10px;
+            font-size: 1rem;
+            border-left: 6px solid #2a9d8f;
+        }
+        .footnote {
+            font-size: 0.8rem;
+            color: #5e7e9c;
+            margin-top: 16px;
+            text-align: right;
+        }
+        hr {
+            border: none;
+            border-top: 1.5px dashed #cbdae6;
+            margin: 20px 0;
+        }
+        .badge {
+            background: #d4e4f5;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        ⚡ EV vs ⛽ Fuel 
+        <span>mileage · pollution · analysis</span>
+    </h1>
+    <div class="subhead">Enter your EV fleet data — we'll compare efficiency & CO₂ impact with conventional fuel vehicles.</div>
+
+    <div class="card">
+        <div class="input-panel">
+            <div class="ev-count-group">
+                <label>🔢 Number of EVs used</label>
+                <input type="number" id="evCount" min="1" max="15" value="2" step="1">
+            </div>
+            <button id="generateBtn">✨ Generate input fields</button>
+            <button id="sampleBtn" class="secondary">📋 Load sample</button>
+        </div>
+
+        <!-- Dynamic EV km inputs appear here -->
+        <div id="evInputContainer" class="ev-entries"></div>
+        
+        <div class="action-row">
+            <button id="calculateBtn">📊 Calculate & compare</button>
+            <span style="margin-left: auto; font-size: 0.9rem; color: #406e8e;">⚙️ Assumptions: EV efficiency 6 km/kWh, grid CO₂ 0.7 kg/kWh · Fuel 15 km/L, 2.3 kg CO₂/L</span>
+        </div>
+    </div>
+
+    <!-- Stats & Analysis -->
+    <div id="resultsArea" style="display: none;">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-weight: 600; font-size: 1.6rem;">📈 Comparison dashboard</h2>
+                <span class="badge">updated</span>
+            </div>
+            
+            <!-- Key metrics grid -->
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <!-- Charts: mileage bar + pollution pie -->
+            <div class="chart-row">
+                <div class="chart-box">
+                    <h3>⚡🔋 Mileage (km per unit)</h3>
+                    <canvas id="mileageChart"></canvas>
+                    <div style="margin-top: 12px; font-size: 0.9rem; color: #2f5575;">EV: km/kWh  •  Fuel: km/L</div>
+                </div>
+                <div class="chart-box">
+                    <h3>🌫️ Total CO₂ emissions (kg)</h3>
+                    <canvas id="pollutionPieChart"></canvas>
+                    <div style="margin-top: 12px; font-size: 0.9rem; color: #2f5575;">Based on total distance traveled</div>
+                </div>
+            </div>
+
+            <!-- Detailed analysis text block -->
+            <div class="analysis-text" id="analysisBlock">
+                📌 Analysis will appear here...
+            </div>
+
+            <hr>
+            <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                <div><strong>🔎 EV avg efficiency:</strong> <span id="avgEvEff"></span> km/kWh</div>
+                <div><strong>🧪 Fuel equivalent:</strong> <span id="fuelEquiv"></span> L/100km</div>
+                <div><strong>📉 CO₂ reduction:</strong> <span id="reductionPercent"></span></div>
+            </div>
+        </div>
+    </div>
+    <div class="footnote">
+        * EV pollution includes well-to-wheel (electricity generation). Fuel emissions are tailpipe + upstream approximated. Values are illustrative.
+    </div>
+</div>
+
+<script>
+    (function(){
+        "use strict";
+
+        // ---------- CONSTANTS (editable defaults) ----------
+        const EV_KM_PER_KWH = 6.0;          // 6 km per kWh
+        const CO2_KG_PER_KWH = 0.7;          // kg CO2 per kWh (grid average)
+        const FUEL_KM_PER_L = 15.0;          // petrol 15 km/L
+        const CO2_KG_PER_L_FUEL = 2.3;       // kg CO2 per liter (petrol)
+
+        // DOM elements
+        const evCountInput = document.getElementById('evCount');
+        const generateBtn = document.getElementById('generateBtn');
+        const sampleBtn = document.getElementById('sampleBtn');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const evContainer = document.getElementById('evInputContainer');
+        const resultsArea = document.getElementById('resultsArea');
+        const statsGrid = document.getElementById('statsGrid');
+        const analysisBlock = document.getElementById('analysisBlock');
+        const avgEvEffSpan = document.getElementById('avgEvEff');
+        const fuelEquivSpan = document.getElementById('fuelEquiv');
+        const reductionPercentSpan = document.getElementById('reductionPercent');
+
+        // Chart instances
+        let mileageChartInstance = null;
+        let pieChartInstance = null;
+
+        // Helper: generate input fields based on count
+        function renderEvInputs(count) {
+            if (count < 1) count = 1;
+            if (count > 20) count = 20; // soft limit
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                html += `
+                    <div class="ev-item">
+                        <label>🚗 EV #${i} · km traveled</label>
+                        <input type="number" id="evKm${i}" class="ev-km-input" min="0" step="1" value="${i===1 ? '120' : (i===2?'85':'50')}" placeholder="km">
+                    </div>
+                `;
+            }
+            evContainer.innerHTML = html;
+        }
+
+        // Get array of km values from inputs
+        function getEvKilometersArray() {
+            const inputs = document.querySelectorAll('.ev-km-input');
+            const kms = [];
+            inputs.forEach(inp => {
+                let val = parseFloat(inp.value);
+                if (isNaN(val) || val < 0) val = 0;
+                kms.push(val);
+            });
+            return kms;
+        }
+
+        // Calculate total EV km
+        function getTotalEvKm(kmsArray) {
+            return kmsArray.reduce((acc, v) => acc + v, 0);
+        }
+
+        // ---------- Core calculations ----------
+        function computeComparison(totalEvKm) {
+            if (totalEvKm <= 0) {
+                return null;
+            }
+
+            // EV side
+            const totalKwh = totalEvKm / EV_KM_PER_KWH;
+            const evEmissionsKg = totalKwh * CO2_KG_PER_KWH;
+            const evGPerKm = (evEmissionsKg * 1000) / totalEvKm;
+
+            // Fuel vehicle (same distance)
+            const fuelLiters = totalEvKm / FUEL_KM_PER_L;
+            const fuelEmissionsKg = fuelLiters * CO2_KG_PER_L_FUEL;
+            const fuelGPerKm = (fuelEmissionsKg * 1000) / totalEvKm;
+
+            // Mileage figures
+            const evMileage = EV_KM_PER_KWH;          // km/kWh
+            const fuelMileage = FUEL_KM_PER_L;         // km/L
+
+            // Additional derived
+            const fuelConsumptionLPer100km = (fuelLiters / totalEvKm) * 100;
+            const evConsumptionKwhPer100km = (totalKwh / totalEvKm) * 100;
+
+            const co2ReductionPercent = fuelEmissionsKg > 0 
+                ? ((fuelEmissionsKg - evEmissionsKg) / fuelEmissionsKg * 100).toFixed(1)
+                : '0.0';
+
+            return {
+                totalKm: totalEvKm,
+                ev: {
+                    kwh: totalKwh,
+                    emissionsKg: evEmissionsKg,
+                    gPerKm: evGPerKm,
+                    mileage: evMileage,
+                    consumptionPer100km: evConsumptionKwhPer100km
+                },
+                fuel: {
+                    liters: fuelLiters,
+                    emissionsKg: fuelEmissionsKg,
+                    gPerKm: fuelGPerKm,
+                    mileage: fuelMileage,
+                    consumptionPer100km: fuelConsumptionLPer100km
+                },
+                reductionPercent: co2ReductionPercent
+            };
+        }
+
+        // Update UI with results
+        function displayResults(comparison) {
+            if (!comparison) {
+                resultsArea.style.display = 'none';
+                return;
+            }
+            resultsArea.style.display = 'block';
+
+            const c = comparison;
+            const ev = c.ev;
+            const fuel = c.fuel;
+
+            // Stats grid
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">🚙 Total distance</div>
+                    <div class="stat-value">${c.totalKm.toFixed(1)}<span class="stat-unit">km</span></div>
+                    <div>across EVs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">⚡ EV energy used</div>
+                    <div class="stat-value">${ev.kwh.toFixed(1)}<span class="stat-unit">kWh</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">⛽ Fuel needed</div>
+                    <div class="stat-value">${fuel.liters.toFixed(1)}<span class="stat-unit">L</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">🌍 EV CO₂</div>
+                    <div class="stat-value">${ev.emissionsKg.toFixed(1)}<span class="stat-unit">kg</span></div>
+                    <div>${ev.gPerKm.toFixed(1)} g/km</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">🏭 Fuel CO₂</div>
+                    <div class="stat-value">${fuel.emissionsKg.toFixed(1)}<span class="stat-unit">kg</span></div>
+                    <div>${fuel.gPerKm.toFixed(1)} g/km</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">📉 CO₂ saved</div>
+                    <div class="stat-value">${(fuel.emissionsKg - ev.emissionsKg).toFixed(1)}<span class="stat-unit">kg</span></div>
+                    <div>↓ ${c.reductionPercent}%</div>
+                </div>
+            `;
+
+            // Update analysis text
+            analysisBlock.innerHTML = `
+                <strong>📋 Detailed analysis</strong><br>
+                • EVs consumed ${ev.kwh.toFixed(2)} kWh for ${c.totalKm.toFixed(1)} km → efficiency ${ev.mileage} km/kWh (${ev.consumptionPer100km.toFixed(1)} kWh/100km).<br>
+                • Equivalent fuel car would use ${fuel.liters.toFixed(2)} L → ${fuel.mileage} km/L (${fuel.consumptionPer100km.toFixed(1)} L/100km).<br>
+                • EV well-to-wheel emissions: ${ev.emissionsKg.toFixed(2)} kg CO₂ (${ev.gPerKm.toFixed(1)} g/km). Fuel vehicle: ${fuel.emissionsKg.toFixed(2)} kg CO₂ (${fuel.gPerKm.toFixed(1)} g/km).<br>
+                • 🟢 EVs reduce CO₂ by ${c.reductionPercent}% compared to fuel vehicles over this distance (grid intensity assumed ${CO2_KG_PER_KWH} kg/kWh).
+            `;
+
+            avgEvEffSpan.textContent = ev.mileage.toFixed(1);
+            fuelEquivSpan.textContent = fuel.consumptionPer100km.toFixed(2);
+            reductionPercentSpan.textContent = c.reductionPercent + '%';
+
+            // ----- Charts -----
+            const ctxMileage = document.getElementById('mileageChart').getContext('2d');
+            if (mileageChartInstance) mileageChartInstance.destroy();
+            mileageChartInstance = new Chart(ctxMileage, {
+                type: 'bar',
+                data: {
+                    labels: ['EV (km/kWh)', 'Fuel (km/L)'],
+                    datasets: [{
+                        label: 'Mileage (higher is better)',
+                        data: [ev.mileage, fuel.mileage],
+                        backgroundColor: ['#2a9d8f', '#e76f51'],
+                        borderRadius: 8,
+                        barPercentage: 0.65
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.raw.toFixed(2)} km per unit` } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'km per unit' } }
+                    }
+                }
+            });
+
+            const ctxPie = document.getElementById('pollutionPieChart').getContext('2d');
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: [`EV · ${ev.emissionsKg.toFixed(1)} kg`, `Fuel · ${fuel.emissionsKg.toFixed(1)} kg`],
+                    datasets: [{
+                        data: [ev.emissionsKg, fuel.emissionsKg],
+                        backgroundColor: ['#2a9d8f', '#e76f51'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw.toFixed(2)} kg CO₂ (${((ctx.raw / (ev.emissionsKg+fuel.emissionsKg))*100).toFixed(1)}%)` } }
+                    }
+                }
+            });
+        }
+
+        // Main calculation handler
+        function calculateAndDisplay() {
+            const kmArray = getEvKilometersArray();
+            const totalKm = getTotalEvKm(kmArray);
+            
+            if (totalKm <= 0) {
+                alert('Please enter positive kilometers for at least one EV.');
+                resultsArea.style.display = 'none';
+                return;
+            }
+
+            const comparison = computeComparison(totalKm);
+            displayResults(comparison);
+        }
+
+        // Initialize / generate default
+        function initializeWithCount(count) {
+            renderEvInputs(count);
+        }
+
+        // Sample data: 3 EVs with realistic distances
+        function loadSampleData() {
+            evCountInput.value = 3;
+            renderEvInputs(3);
+            // Set specific sample values
+            const inputs = document.querySelectorAll('.ev-km-input');
+            const sampleKms = [145, 87, 210];
+            inputs.forEach((inp, idx) => {
+                if (idx < sampleKms.length) inp.value = sampleKms[idx];
+            });
+            calculateAndDisplay();
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', () => {
+            let count = parseInt(evCountInput.value, 10);
+            if (isNaN(count) || count < 1) count = 1;
+            if (count > 20) count = 20;
+            renderEvInputs(count);
+        });
+
+        sampleBtn.addEventListener('click', loadSampleData);
+
+        calculateBtn.addEventListener('click', calculateAndDisplay);
+
+        // On page load: default 2 EVs, prefill and calculate
+        window.addEventListener('DOMContentLoaded', () => {
+            renderEvInputs(2);
+            const inputs = document.querySelectorAll('.ev-km-input');
+            if (inputs.length >= 2) {
+                inputs[0].value = 120;
+                inputs[1].value = 85;
+            }
+            // Auto-calculate on load so user sees a meaningful dashboard
+            setTimeout(() => {
+                calculateAndDisplay();
+            }, 20);
+        });
+
+        // Expose for debugging (optional)
+        window.refreshCalc = calculateAndDisplay;
+    })();
+</script>
+</body>
+</html>
